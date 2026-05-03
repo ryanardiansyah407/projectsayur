@@ -127,6 +127,10 @@ let sesi=null;
 let scanner=null;
 let scanLock=false;
 
+/* GET ELEMENT SAFE */
+const hasil = document.getElementById("hasil");
+const loginMsg = document.getElementById("loginMsg");
+
 /* LOGIN */
 async function login(){
 
@@ -135,6 +139,9 @@ async function login(){
  try{
   const r=await fetch(API_URL,{
    method:"POST",
+   headers:{
+     "Content-Type":"application/json"
+   },
    body:JSON.stringify({
     action:"login",
     username:username.value.trim(),
@@ -143,6 +150,8 @@ async function login(){
   });
 
   const j=await r.json();
+
+  console.log("LOGIN:",j);
 
   if(j.status=="ok"){
    sesi=j;
@@ -157,7 +166,7 @@ async function login(){
  }
 }
 
-/* OPEN */
+/* OPEN APP */
 function bukaApp(){
 
  loginBox.classList.add("hide");
@@ -180,32 +189,35 @@ function logout(){
  location.reload();
 }
 
-/* SAVE CORE */
+/* CORE SAVE */
 async function simpan(barcode,qty,jenis){
 
- if(scanLock)return;
+ if(scanLock) return;
 
- barcode=barcode.trim();
- qty=Number(qty);
- jenis=(jenis||"").toUpperCase();
+ barcode = (barcode||"").trim();
+ qty = Number(qty);
+ jenis = (jenis||"").toUpperCase();
 
  if(!barcode){
   hasil.innerHTML="❌ Barcode kosong";
   return;
  }
 
- if(isNaN(qty)||qty<=0){
+ if(isNaN(qty) || qty <= 0){
   hasil.innerHTML="❌ Qty tidak valid";
   return;
  }
 
- scanLock=true;
+ scanLock = true;
  hasil.innerHTML="Menyimpan...";
 
  try{
 
-  const r=await fetch(API_URL,{
+  const r = await fetch(API_URL,{
    method:"POST",
+   headers:{
+     "Content-Type":"application/json"
+   },
    body:JSON.stringify({
     action:"scan",
     barcode:barcode,
@@ -216,12 +228,12 @@ async function simpan(barcode,qty,jenis){
    })
   });
 
-  const j=await r.json();
+  const j = await r.json();
 
-  console.log(j);
+  console.log("SCAN:",j);
 
   if(j.status=="ok"){
-   hasil.innerHTML="✔ OK stok: "+j.stok;
+   hasil.innerHTML="✔ OK | stok: "+j.stok;
   }else{
    hasil.innerHTML="❌ "+j.msg;
    return;
@@ -247,7 +259,7 @@ function simpanAdmin(){
  barcodeAdmin.focus();
 }
 
-/* STAFF (KELUAR ONLY) */
+/* STAFF */
 function simpanStaff(){
  simpan(
   barcodeStaff.value,
@@ -260,16 +272,15 @@ function simpanStaff(){
  barcodeStaff.focus();
 }
 
-/* CAMERA SIMPLE */
+/* PLACEHOLDER SCAN */
 function scanAdmin(){
- hasil.innerHTML="SCAN ADMIN aktif";
+ hasil.innerHTML="📷 Scanner admin siap (belum connect kamera)";
 }
 
 function scanStaff(){
- hasil.innerHTML="SCAN STAFF aktif";
+ hasil.innerHTML="📷 Scanner staff siap (belum connect kamera)";
 }
 
 </script>
-
 </body>
 </html>
