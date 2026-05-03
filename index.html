@@ -317,13 +317,19 @@ async function simpan(barcode,qty,jenis){
 
   const j=await r.json();
 
-  if(j.status=="ok"){
-    hasil.innerHTML="✔ Tersimpan";
-    beepSuccess();
-  }else{
-    hasil.innerHTML="❌ Gagal";
-    beepError();
-  }
+ if(j.status=="ok"){
+  hasil.innerHTML =
+    "✔ Tersimpan<br>" +
+    "📦 Barang: " + (j.nama || "-") + "<br>" +
+    "📊 Stok akhir: " + j.stok;
+
+  beepSuccess();
+}else{
+  hasil.innerHTML =
+    "❌ Gagal: " + (j.msg || "unknown");
+
+  beepError();
+}
 
  }catch(e){
   hasil.innerHTML="❌ "+e.message;
