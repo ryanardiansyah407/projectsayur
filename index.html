@@ -121,7 +121,7 @@ button:hover{opacity:.9}
 
 const API_URL="https://script.google.com/macros/s/AKfycbxLSrx3470ahsvwHr8d508vUBwhfOX0hOgA4As5Ka4UKJZGv9bVEKGB2yAQ73W63aAy/exec";
 
-/* DOM SAFE BIND */
+/* DOM */
 const username = document.getElementById("username");
 const password = document.getElementById("password");
 
@@ -131,50 +131,55 @@ const adminPage = document.getElementById("adminPage");
 const staffPage = document.getElementById("staffPage");
 const userInfo = document.getElementById("userInfo");
 
-const barcodeAdmin = document.getElementById("barcodeAdmin");
-const qtyAdmin = document.getElementById("qtyAdmin");
-const jenisAdmin = document.getElementById("jenisAdmin");
-
-const barcodeStaff = document.getElementById("barcodeStaff");
-const qtyStaff = document.getElementById("qtyStaff");
-
 const hasil = document.getElementById("hasil");
 const loginMsg = document.getElementById("loginMsg");
 
 let sesi=null;
 let scanLock=false;
 
+/* SAFE FETCH (INI PENTING) */
+async function postData(payload){
+  try{
+    const r = await fetch(API_URL,{
+      method:"POST",
+      headers:{
+        "Content-Type":"text/plain;charset=utf-8"
+      },
+      body:JSON.stringify(payload)
+    });
+
+    const text = await r.text();
+    console.log("RAW RESPONSE:", text);
+
+    return JSON.parse(text);
+
+  }catch(err){
+    console.error("FETCH ERROR:", err);
+    return {status:"error", msg: err.message};
+  }
+}
+
 /* LOGIN */
 async function login(){
 
  loginMsg.innerHTML="Loading...";
 
- try{
-  const r=await fetch(API_URL,{
-   method:"POST",
-   body:JSON.stringify({
-    action:"login",
-    username: username.value.trim(),
-    password: password.value.trim()
-   })
-  });
+ const j = await postData({
+   action:"login",
+   username: username.value.trim(),
+   password: password.value.trim()
+ });
 
-  const j=await r.json();
-
-  if(j.status=="ok"){
+ if(j.status=="ok"){
    sesi=j;
    sessionStorage.setItem("loginUser",JSON.stringify(j));
    bukaApp();
-  }else{
+ }else{
    loginMsg.innerHTML="❌ "+j.msg;
-  }
-
- }catch(e){
-  loginMsg.innerHTML="❌ "+e.message;
  }
 }
 
-/* OPEN APP */
+/* OPEN */
 function bukaApp(){
 
  loginBox.classList.add("hide");
@@ -197,7 +202,7 @@ function logout(){
  location.reload();
 }
 
-/* CORE SAVE */
+/* SAVE */
 async function simpan(barcode,qty,jenis){
 
  if(scanLock) return;
@@ -211,7 +216,7 @@ async function simpan(barcode,qty,jenis){
   return;
  }
 
- if(isNaN(qty) || qty<=0){
+ if(isNaN(qty)||qty<=0){
   hasil.innerHTML="❌ Qty tidak valid";
   return;
  }
@@ -219,29 +224,21 @@ async function simpan(barcode,qty,jenis){
  scanLock=true;
  hasil.innerHTML="Menyimpan...";
 
- try{
-  const r=await fetch(API_URL,{
-   method:"POST",
-   body:JSON.stringify({
-    action:"scan",
-    barcode,
-    qty,
-    jenis,
-    user:sesi.username,
-    role:sesi.role
-   })
-  });
+ const j = await postData({
+   action:"scan",
+   barcode,
+   qty,
+   jenis,
+   user:sesi.username,
+   role:sesi.role
+ });
 
-  const j=await r.json();
+ console.log("SCAN RESULT:", j);
 
-  if(j.status=="ok"){
-   hasil.innerHTML="✔️ OK | stok: "+j.stok;
-  }else{
+ if(j.status=="ok"){
+   hasil.innerHTML="✔ OK | stok: "+j.stok;
+ }else{
    hasil.innerHTML="❌ "+j.msg;
-  }
-
- }catch(e){
-  hasil.innerHTML="❌ "+e.message;
  }
 
  setTimeout(()=>scanLock=false,800);
@@ -249,41 +246,26 @@ async function simpan(barcode,qty,jenis){
 
 /* ADMIN */
 function simpanAdmin(){
+ simpan(
+  barcodeAdmin.value,
+  qtyAdmin.value,
+  jenisAdmin.value
+ );
 
- const bc = document.getElementById("barcodeAdmin").value;
- const qty = document.getElementById("qtyAdmin").value;
- const jenis = document.getElementById("jenisAdmin").value;
-
- console.log("DEBUG ADMIN:", bc, qty, jenis);
-
- if(!bc || bc.trim()===""){
-  hasil.innerHTML="❌ Barcode masih kosong (cek input)";
-  return;
- }
-
- simpan(bc, qty, jenis);
-
- document.getElementById("barcodeAdmin").value="";
- document.getElementById("qtyAdmin").value=1;
- document.getElementById("barcodeAdmin").focus();
+ barcodeAdmin.value="";
+ qtyAdmin.value=1;
 }
 
 /* STAFF */
 function simpanStaff(){
+ simpan(
+  barcodeStaff.value,
+  qtyStaff.value,
+  "KELUAR"
+ );
 
- const bc = document.getElementById("barcodeStaff").value;
- const qty = document.getElementById("qtyStaff").value;
-
- if(!bc || bc.trim()===""){
-  hasil.innerHTML="❌ Barcode masih kosong (staff)";
-  return;
- }
-
- simpan(bc, qty, "KELUAR");
-
- document.getElementById("barcodeStaff").value="";
- document.getElementById("qtyStaff").value=1;
- document.getElementById("barcodeStaff").focus();
+ barcodeStaff.value="";
+ qtyStaff.value=1;
 }
 
 /* SCAN PLACEHOLDER */
@@ -295,6 +277,5 @@ function scanStaff(){
 }
 
 </script>
-
 </body>
 </html>
