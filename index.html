@@ -139,7 +139,7 @@ async function login(){
  try{
   const r=await fetch(API_URL,{
    method:"POST",
-   mode: "co-cors",
+   mode: "no-cors",
    headers:{
      "Content-Type":"application/json"
    },
