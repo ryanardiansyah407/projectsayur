@@ -6,52 +6,19 @@
 <title>TRANSAKSI SFB</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f4f6f8;
-}
-header{
-  background:#111;
-  color:#fff;
-  padding:16px;
-}
-main{
-  max-width:900px;
-  margin:auto;
-  padding:16px;
-}
-.card{
-  background:#fff;
-  padding:16px;
-  border-radius:14px;
-  box-shadow:0 4px 12px rgba(0,0,0,.08);
-  margin-bottom:16px;
-}
-input,select,button{
-  width:100%;
-  padding:12px;
-  margin:6px 0;
-  border-radius:10px;
-  border:1px solid #ccc;
-  box-sizing:border-box;
-}
-button{
-  background:#111;
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
-button:hover{opacity:.9}
+body{margin:0;font-family:Arial;background:#f4f6f8}
+header{background:#111;color:#fff;padding:16px}
+main{max-width:800px;margin:auto;padding:16px}
+.card{background:#fff;padding:16px;border-radius:12px;margin-bottom:12px}
+input,select,button{width:100%;padding:10px;margin:6px 0}
+button{background:#111;color:#fff;border:none}
 .hide{display:none}
 </style>
 </head>
 
 <body>
 
-<header>
-<h2>TRANSAKSI SFB</h2>
-</header>
+<header>TRANSAKSI SFB</header>
 
 <main>
 
@@ -72,86 +39,47 @@ button:hover{opacity:.9}
 <button onclick="logout()">Logout</button>
 </div>
 
-<!-- ADMIN -->
-<div id="adminPage" class="hide">
 <div class="card">
-<h3>ADMIN</h3>
+<h3>TRANSAKSI</h3>
 
-<input id="barcodeAdmin" placeholder="Barcode">
-<input id="qtyAdmin" type="number" value="1">
+<input id="barcode" placeholder="Barcode">
+<input id="qty" type="number" value="1">
 
-<select id="jenisAdmin">
+<select id="jenis">
 <option value="MASUK">MASUK</option>
 <option value="KELUAR">KELUAR</option>
 </select>
 
-<button onclick="simpanAdmin()">SIMPAN</button>
+<button onclick="simpan()">SIMPAN</button>
 
-</div>
-</div>
-
-<!-- STAFF -->
-<div id="staffPage" class="hide">
-<div class="card">
-<h3>STAFF</h3>
-
-<input id="barcodeStaff" placeholder="Barcode">
-<input id="qtyStaff" type="number" value="1">
-
-<button onclick="simpanStaff()">SIMPAN</button>
-
-</div>
 </div>
 
 <div class="card">
-<h3>INFO</h3>
 <div id="hasil">Siap</div>
 </div>
 
 </div>
 
-</main>
-
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwqD56yVgH5QVHXyKF-rZwxQk8rhVEd9Z6FucJNutEEkEIGEjzgvSmo_8UIUe2x2ewf/exec";
-
-/* ELEMENT */
-const username = document.getElementById("username");
-const password = document.getElementById("password");
-
-const loginBox = document.getElementById("loginBox");
-const appBox = document.getElementById("appBox");
-const adminPage = document.getElementById("adminPage");
-const staffPage = document.getElementById("staffPage");
-
-const userInfo = document.getElementById("userInfo");
-const hasil = document.getElementById("hasil");
-const loginMsg = document.getElementById("loginMsg");
+const API_URL = "https://script.google.com/macros/s/AKfycbwpbyKs_riCiEk6b-Bux_yCUgJkjmiHWK1SZn5pP1HKGmexbb_OsnFIuNVD378jJBTY/exec";
 
 let sesi = null;
-let scanLock = false;
+let lock = false;
 
-/* 🔥 FIX CORE FETCH (INI KUNCI BIAR TIDAK FAILED TO FETCH) */
 async function postData(payload){
-  try{
-    const r = await fetch(API_URL,{
-      method:"POST",
-      headers:{
-        "Content-Type":"text/plain;charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
+  const r = await fetch(API_URL,{
+    method:"POST",
+    headers:{
+      "Content-Type":"text/plain;charset=utf-8"
+    },
+    body:JSON.stringify(payload)
+  });
 
-    const text = await r.text();
-    console.log("RAW RESPONSE:", text);
+  const text = await r.text();
+  console.log("RAW:", text);
 
-    return JSON.parse(text);
-
-  }catch(err){
-    console.error(err);
-    return {status:"error", msg: err.message};
-  }
+  return JSON.parse(text);
 }
 
 /* LOGIN */
@@ -161,106 +89,52 @@ async function login(){
 
  const j = await postData({
    action:"login",
-   username: username.value.trim(),
-   password: password.value.trim()
+   username:username.value.trim(),
+   password:password.value.trim()
  });
 
  if(j.status=="ok"){
-   sesi = j;
-   sessionStorage.setItem("loginUser", JSON.stringify(j));
-   bukaApp();
+   sesi=j;
+   buka();
  }else{
-   loginMsg.innerHTML="❌ "+j.msg;
+   loginMsg.innerHTML=j.msg;
  }
 }
 
-/* OPEN APP */
-function bukaApp(){
-
+/* OPEN */
+function buka(){
  loginBox.classList.add("hide");
  appBox.classList.remove("hide");
-
- userInfo.innerHTML = "User: " + sesi.nama + " | " + sesi.role;
-
- if(sesi.role.toLowerCase()=="admin"){
-   adminPage.classList.remove("hide");
-   staffPage.classList.add("hide");
- }else{
-   staffPage.classList.remove("hide");
-   adminPage.classList.add("hide");
- }
+ userInfo.innerHTML = sesi.nama + " | " + sesi.role;
 }
 
 /* LOGOUT */
 function logout(){
- sessionStorage.removeItem("loginUser");
  location.reload();
 }
 
-/* SAVE CORE */
-async function simpan(barcode,qty,jenis){
+/* SIMPAN */
+async function simpan(){
 
- if(scanLock) return;
-
- barcode = (barcode||"").trim();
- qty = Number(qty);
- jenis = (jenis||"").toUpperCase();
-
- if(!barcode){
-   hasil.innerHTML="❌ Barcode kosong";
-   return;
- }
-
- if(isNaN(qty) || qty<=0){
-   hasil.innerHTML="❌ Qty tidak valid";
-   return;
- }
-
- scanLock = true;
- hasil.innerHTML = "Menyimpan...";
+ if(lock) return;
+ lock = true;
 
  const j = await postData({
    action:"scan",
-   barcode,
-   qty,
-   jenis,
+   barcode: barcode.value,
+   qty: qty.value,
+   jenis: jenis.value,
    user: sesi.username,
    role: sesi.role
  });
 
- console.log("SCAN:", j);
-
  if(j.status=="ok"){
-   hasil.innerHTML="✔ OK | stok: "+j.stok;
+   hasil.innerHTML="✔ OK stok: "+j.stok;
  }else{
    hasil.innerHTML="❌ "+j.msg;
  }
 
- setTimeout(()=>scanLock=false,800);
-}
-
-/* ADMIN */
-function simpanAdmin(){
- simpan(
-   barcodeAdmin.value,
-   qtyAdmin.value,
-   jenisAdmin.value
- );
-
- barcodeAdmin.value="";
- qtyAdmin.value=1;
-}
-
-/* STAFF */
-function simpanStaff(){
- simpan(
-   barcodeStaff.value,
-   qtyStaff.value,
-   "KELUAR"
- );
-
- barcodeStaff.value="";
- qtyStaff.value=1;
+ setTimeout(()=>lock=false,800);
 }
 
 </script>
