@@ -212,10 +212,6 @@ async function simpan(barcode,qty,jenis){
 
   const r = await fetch(API_URL,{
    method:"POST",
-   headers:{
-     "Content-Type":"application/json"
-   },
-   body:JSON.stringify({
     action:"scan",
     barcode:barcode,
     qty:qty,
