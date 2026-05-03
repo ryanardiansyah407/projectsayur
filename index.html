@@ -249,18 +249,41 @@ async function simpan(barcode,qty,jenis){
 
 /* ADMIN */
 function simpanAdmin(){
- simpan(barcodeAdmin.value, qtyAdmin.value, jenisAdmin.value);
- barcodeAdmin.value="";
- qtyAdmin.value=1;
- barcodeAdmin.focus();
+
+ const bc = document.getElementById("barcodeAdmin").value;
+ const qty = document.getElementById("qtyAdmin").value;
+ const jenis = document.getElementById("jenisAdmin").value;
+
+ console.log("DEBUG ADMIN:", bc, qty, jenis);
+
+ if(!bc || bc.trim()===""){
+  hasil.innerHTML="❌ Barcode masih kosong (cek input)";
+  return;
+ }
+
+ simpan(bc, qty, jenis);
+
+ document.getElementById("barcodeAdmin").value="";
+ document.getElementById("qtyAdmin").value=1;
+ document.getElementById("barcodeAdmin").focus();
 }
 
 /* STAFF */
 function simpanStaff(){
- simpan(barcodeStaff.value, qtyStaff.value, "KELUAR");
- barcodeStaff.value="";
- qtyStaff.value=1;
- barcodeStaff.focus();
+
+ const bc = document.getElementById("barcodeStaff").value;
+ const qty = document.getElementById("qtyStaff").value;
+
+ if(!bc || bc.trim()===""){
+  hasil.innerHTML="❌ Barcode masih kosong (staff)";
+  return;
+ }
+
+ simpan(bc, qty, "KELUAR");
+
+ document.getElementById("barcodeStaff").value="";
+ document.getElementById("qtyStaff").value=1;
+ document.getElementById("barcodeStaff").focus();
 }
 
 /* SCAN PLACEHOLDER */
