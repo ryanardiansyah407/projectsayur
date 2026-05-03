@@ -318,13 +318,13 @@ async function simpan(barcode,qty,jenis){
 
   const j=await r.json();
 
-  if(j.status=="ok"){
-    hasil.innerHTML="✔ Tersimpan";
-    beepSuccess();
-  }else{
-    hasil.innerHTML="❌ Gagal";
-    beepError();
-  }
+ if(j.status=="ok"){
+  hasil.innerHTML="✔ Tersimpan";
+  beepSuccess();
+}else{
+  hasil.innerHTML="❌ "+j.msg; // <<<<<< INI PENTING
+  beepError();
+}
 
  }catch(e){
   hasil.innerHTML="❌ "+e.message;
