@@ -139,6 +139,7 @@ async function login(){
  try{
   const r=await fetch(API_URL,{
    method:"POST",
+   mode: "co-cors",
    headers:{
      "Content-Type":"application/json"
    },
