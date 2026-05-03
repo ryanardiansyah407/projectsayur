@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<link rel="manifest" href="/manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TRANSAKSI SFB</title>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{
@@ -88,7 +85,6 @@ button:hover{opacity:.9}
 <option value="KELUAR">KELUAR</option>
 </select>
 
-<button onclick="scanAdmin()">SCAN</button>
 <button onclick="simpanAdmin()">SIMPAN</button>
 
 </div>
@@ -97,12 +93,11 @@ button:hover{opacity:.9}
 <!-- STAFF -->
 <div id="staffPage" class="hide">
 <div class="card">
-<h3>STAFF (KELUAR SAJA)</h3>
+<h3>STAFF</h3>
 
 <input id="barcodeStaff" placeholder="Barcode">
 <input id="qtyStaff" type="number" value="1">
 
-<button onclick="scanStaff()">SCAN</button>
 <button onclick="simpanStaff()">SIMPAN</button>
 
 </div>
@@ -119,9 +114,9 @@ button:hover{opacity:.9}
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbxLSrx3470ahsvwHr8d508vUBwhfOX0hOgA4As5Ka4UKJZGv9bVEKGB2yAQ73W63aAy/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwqD56yVgH5QVHXyKF-rZwxQk8rhVEd9Z6FucJNutEEkEIGEjzgvSmo_8UIUe2x2ewf/exec";
 
-/* DOM */
+/* ELEMENT */
 const username = document.getElementById("username");
 const password = document.getElementById("password");
 
@@ -129,15 +124,15 @@ const loginBox = document.getElementById("loginBox");
 const appBox = document.getElementById("appBox");
 const adminPage = document.getElementById("adminPage");
 const staffPage = document.getElementById("staffPage");
-const userInfo = document.getElementById("userInfo");
 
+const userInfo = document.getElementById("userInfo");
 const hasil = document.getElementById("hasil");
 const loginMsg = document.getElementById("loginMsg");
 
-let sesi=null;
-let scanLock=false;
+let sesi = null;
+let scanLock = false;
 
-/* SAFE FETCH (INI PENTING) */
+/* 🔥 FIX CORE FETCH (INI KUNCI BIAR TIDAK FAILED TO FETCH) */
 async function postData(payload){
   try{
     const r = await fetch(API_URL,{
@@ -145,7 +140,7 @@ async function postData(payload){
       headers:{
         "Content-Type":"text/plain;charset=utf-8"
       },
-      body:JSON.stringify(payload)
+      body: JSON.stringify(payload)
     });
 
     const text = await r.text();
@@ -154,7 +149,7 @@ async function postData(payload){
     return JSON.parse(text);
 
   }catch(err){
-    console.error("FETCH ERROR:", err);
+    console.error(err);
     return {status:"error", msg: err.message};
   }
 }
@@ -171,21 +166,21 @@ async function login(){
  });
 
  if(j.status=="ok"){
-   sesi=j;
-   sessionStorage.setItem("loginUser",JSON.stringify(j));
+   sesi = j;
+   sessionStorage.setItem("loginUser", JSON.stringify(j));
    bukaApp();
  }else{
    loginMsg.innerHTML="❌ "+j.msg;
  }
 }
 
-/* OPEN */
+/* OPEN APP */
 function bukaApp(){
 
  loginBox.classList.add("hide");
  appBox.classList.remove("hide");
 
- userInfo.innerHTML="User: "+sesi.nama+" | "+sesi.role;
+ userInfo.innerHTML = "User: " + sesi.nama + " | " + sesi.role;
 
  if(sesi.role.toLowerCase()=="admin"){
    adminPage.classList.remove("hide");
@@ -202,38 +197,38 @@ function logout(){
  location.reload();
 }
 
-/* SAVE */
+/* SAVE CORE */
 async function simpan(barcode,qty,jenis){
 
  if(scanLock) return;
 
- barcode=(barcode||"").trim();
- qty=Number(qty);
- jenis=(jenis||"").toUpperCase();
+ barcode = (barcode||"").trim();
+ qty = Number(qty);
+ jenis = (jenis||"").toUpperCase();
 
  if(!barcode){
-  hasil.innerHTML="❌ Barcode kosong";
-  return;
+   hasil.innerHTML="❌ Barcode kosong";
+   return;
  }
 
- if(isNaN(qty)||qty<=0){
-  hasil.innerHTML="❌ Qty tidak valid";
-  return;
+ if(isNaN(qty) || qty<=0){
+   hasil.innerHTML="❌ Qty tidak valid";
+   return;
  }
 
- scanLock=true;
- hasil.innerHTML="Menyimpan...";
+ scanLock = true;
+ hasil.innerHTML = "Menyimpan...";
 
  const j = await postData({
    action:"scan",
    barcode,
    qty,
    jenis,
-   user:sesi.username,
-   role:sesi.role
+   user: sesi.username,
+   role: sesi.role
  });
 
- console.log("SCAN RESULT:", j);
+ console.log("SCAN:", j);
 
  if(j.status=="ok"){
    hasil.innerHTML="✔ OK | stok: "+j.stok;
@@ -247,9 +242,9 @@ async function simpan(barcode,qty,jenis){
 /* ADMIN */
 function simpanAdmin(){
  simpan(
-  barcodeAdmin.value,
-  qtyAdmin.value,
-  jenisAdmin.value
+   barcodeAdmin.value,
+   qtyAdmin.value,
+   jenisAdmin.value
  );
 
  barcodeAdmin.value="";
@@ -259,23 +254,16 @@ function simpanAdmin(){
 /* STAFF */
 function simpanStaff(){
  simpan(
-  barcodeStaff.value,
-  qtyStaff.value,
-  "KELUAR"
+   barcodeStaff.value,
+   qtyStaff.value,
+   "KELUAR"
  );
 
  barcodeStaff.value="";
  qtyStaff.value=1;
 }
 
-/* SCAN PLACEHOLDER */
-function scanAdmin(){
- hasil.innerHTML="📷 Scanner admin ready";
-}
-function scanStaff(){
- hasil.innerHTML="📷 Scanner staff ready";
-}
-
 </script>
+
 </body>
 </html>
